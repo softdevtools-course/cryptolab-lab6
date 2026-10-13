@@ -1,0 +1,25 @@
+[Unit]
+Description=CryptoLab Lab 6 private preview
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=exedev
+Group=exedev
+WorkingDirectory=/opt/cryptolab/current
+Environment=CRYPTOLAB_DATA_DIR=/var/lib/cryptolab
+Environment=CRYPTOLAB_COOKIE_SECURE=1
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/opt/cryptolab/current/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
+Restart=on-failure
+RestartSec=3
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/cryptolab
+
+[Install]
+WantedBy=multi-user.target

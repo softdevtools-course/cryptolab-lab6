@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CryptoLab · ЛР №6</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">◇</span><span>CryptoLab <small>ЛР №6</small></span></div>
+      <span class="local-badge">Локальный стенд</span>
+    </header>
+
+    <main>
+      <section class="intro">
+        <p class="eyebrow">ЛР №6 · шесть технических шагов</p>
+        <h1>От готового ключа к зашифрованному обмену</h1>
+        <p class="lead">Расшифруйте пример, подтвердите личные ключи, сертификаты и подпись, затем обменяйтесь зашифрованными пакетами с сервером.</p>
+        <div class="progress-card" aria-label="Прогресс технических шагов">
+          <div class="progress-head"><strong>Моя работа</strong><span id="progressText">Ожидается подготовительный шаг</span></div>
+          <div class="progress-track" role="progressbar" aria-label="Технические шаги лабораторной" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0" id="progressBar"><span id="progressFill"></span></div>
+          <p>Полоса отражает только подтверждённые технические шаги. После заполнения отправьте работу на проверку.</p>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="exampleHeading">
+        <div class="section-heading"><span class="step-number">01</span><div><p class="eyebrow">Общий пример</p><h2 id="exampleHeading">Проверьте ключ</h2></div></div>
+        <p class="section-intro">Откройте файлы, скопируйте их содержимое в поля и запустите расшифрование. Для быстрой проверки есть кнопки заполнения.</p>
+        <div class="columns">
+          <div class="field-block">
+            <label for="keyInput">Учебный ключ · PEM / PKCS#8</label>
+            <textarea id="keyInput" spellcheck="false" placeholder="-----BEGIN PRIVATE KEY-----&#10;...&#10;-----END PRIVATE KEY-----"></textarea>
+            <div class="field-actions"><a href="/examples/training-key.pem" target="_blank" rel="noopener">Открыть ключ</a><button type="button" class="text-button" id="loadKey">Вставить учебный ключ</button></div>
+          </div>
+          <div class="field-block">
+            <label for="cipherInput">Шифротекст · base64url</label>
+            <textarea id="cipherInput" spellcheck="false" placeholder="Вставьте зашифрованный текст"></textarea>
+            <div class="field-actions"><a href="/examples/ciphertext.txt" target="_blank" rel="noopener">Открыть шифротекст</a><button type="button" class="text-button" id="loadCipher">Вставить шифротекст</button></div>
+          </div>
+        </div>
+        <div class="button-row"><button type="button" class="button primary" id="decryptExample">Расшифровать</button><button type="button" class="button subtle" id="loadWrongKey">Подставить другой ключ</button><a class="small-link" href="/examples/wrong-key.pem" target="_blank" rel="noopener">Открыть другой ключ</a></div>
+        <div class="result" id="exampleResult" role="status" aria-live="polite">Результат появится здесь.</div>
+        <p class="hint" id="exampleProgress" role="status" aria-live="polite">Общий пример: ожидается · другой ключ: ожидается</p>
+        <p class="hint">Учебный закрытый ключ намеренно опубликован. Он не связан с личными ключами студента или ключом удостоверяющего центра.</p>
+      </section>
+
+      <section class="card locked" id="challengeSection" aria-labelledby="challengeHeading">
+        <div class="section-heading"><span class="step-number">02</span><div><p class="eyebrow">Одноразовое задание</p><h2 id="challengeHeading">Подтвердите результат</h2></div></div>
+        <p class="section-intro">Сервер создаст новый шифротекст для вашего локального сеанса. Расшифруйте его тем же учебным ключом и отправьте полученный ответ на проверку.</p>
+        <div class="button-row"><button type="button" class="button subtle" id="issueChallenge" disabled>Получить задание</button><span class="expiry" id="expiry"></span></div>
+        <div class="field-block"><label for="challengeCipher">Шифротекст задания</label><textarea id="challengeCipher" readonly spellcheck="false" placeholder="Сервер выдаст его после первого опыта"></textarea></div>
+        <div class="button-row"><button type="button" class="button subtle" id="decryptChallenge" disabled>Расшифровать задание</button></div>
+        <div class="field-block answer-field"><label for="answerInput">Полученный текст</label><input id="answerInput" type="text" autocomplete="off" placeholder="Здесь появится ответ после расшифрования"></div>
+        <div class="button-row"><button type="button" class="button primary" id="verifyAnswer" disabled>Отправить ответ на проверку</button></div>
+        <div class="result" id="challengeResult" role="status" aria-live="polite">Сначала расшифруйте общий пример выше.</div>
+      </section>
+
+      <section class="card locked" id="keysSection" aria-labelledby="keysHeading">
+        <div class="section-heading"><span class="step-number">03</span><div><p class="eyebrow">Личные ключи</p><h2 id="keysHeading">Создайте две пары ключей</h2></div></div>
+        <p class="section-intro">Одна пара нужна для шифрования, другая — для подписи. Закрытые ключи сохраняются только в этом браузерном профиле. Сервер получает открытые ключи и проверяет два действия с одноразовыми заданиями.</p>
+        <p class="hint">Учебная запись этого локального сеанса: <code id="actorId">загрузка…</code></p>
+        <div class="button-row"><button type="button" class="button primary" id="generateKeys" disabled>Создать личные ключи</button><button type="button" class="button subtle" id="requestKeyProof" disabled>Получить задания для проверки</button></div>
+        <div class="result" id="keysResult" role="status" aria-live="polite">Сначала подтвердите подготовительный шаг.</div>
+        <p class="hint fingerprints" id="keyFingerprints"></p>
+        <div class="columns key-fields">
+          <div class="field-block"><label for="personalCipher">Задание для ключа шифрования</label><textarea id="personalCipher" readonly spellcheck="false" placeholder="Здесь появится шифротекст"></textarea></div>
+          <div class="field-block"><label for="signingText">Текст для подписи</label><textarea id="signingText" readonly spellcheck="false" placeholder="Здесь появится текст"></textarea></div>
+        </div>
+        <div class="button-row"><button type="button" class="button subtle" id="proveKeys" disabled>Расшифровать и подписать</button><span class="expiry" id="keyExpiry"></span></div>
+        <div class="columns key-fields">
+          <div class="field-block"><label for="personalAnswer">Расшифрованный ответ</label><input id="personalAnswer" type="text" autocomplete="off"></div>
+          <div class="field-block"><label for="signatureOutput">Подпись · base64url</label><textarea id="signatureOutput" spellcheck="false"></textarea></div>
+        </div>
+        <div class="button-row"><button type="button" class="button primary" id="confirmKeys" disabled>Подтвердить владение ключами</button></div>
+        <p class="hint">После закрытия и повторного открытия браузера ключи должны остаться. Очистка данных сайта или смена профиля удалит доступ к ним.</p>
+      </section>
+
+      <section class="card locked" id="certificatesSection" aria-labelledby="certificatesHeading">
+        <div class="section-heading"><span class="step-number">04</span><div><p class="eyebrow">Сертификаты</p><h2 id="certificatesHeading">Проверьте учебный CA</h2></div></div>
+        <p class="section-intro">После проверки личных ключей запросите отдельные сертификаты для шифрования и подписи. Сверьте SHA-256 отпечаток корня с контрольным значением, которое преподаватель сообщил отдельно от этой страницы.</p>
+        <div class="button-row"><button type="button" class="button subtle" id="showRoot">Показать корневой сертификат</button><button type="button" class="button primary" id="issueCertificates" disabled>Получить сертификаты</button></div>
+        <div class="result" id="certificatesResult" role="status" aria-live="polite">Сначала подтвердите владение личными ключами.</div>
+        <div class="field-block cert-root"><label for="rootCertificate">Корневой сертификат CA · PEM</label><textarea id="rootCertificate" readonly spellcheck="false" placeholder="Нажмите «Показать корневой сертификат»"></textarea></div>
+        <p class="hint fingerprints" id="rootFingerprint"></p>
+        <div class="columns cert-columns">
+          <div class="field-block"><label for="encryptionCertificate">Сертификат шифрования · PEM</label><textarea id="encryptionCertificate" readonly spellcheck="false"></textarea><p class="hint cert-meta" id="encryptionCertificateMeta"></p></div>
+          <div class="field-block"><label for="signatureCertificate">Сертификат подписи · PEM</label><textarea id="signatureCertificate" readonly spellcheck="false"></textarea><p class="hint cert-meta" id="signatureCertificateMeta"></p></div>
+        </div>
+        <div class="field-block answer-field"><label for="teacherFingerprint">Контрольный отпечаток CA от преподавателя · SHA-256</label><input id="teacherFingerprint" type="text" autocomplete="off" spellcheck="false" placeholder="Например, aa:bb:…"></div>
+        <div class="button-row"><button type="button" class="button primary" id="verifyCertificates" disabled>Сверить и подтвердить сертификаты</button></div>
+        <p class="hint">Отпечаток, показанный самой страницей, не служит независимым контрольным значением. Закрытый ключ CA остаётся на сервере.</p>
+      </section>
+
+      <section class="card locked" id="signatureSection" aria-labelledby="signatureHeading">
+        <div class="section-heading"><span class="step-number">05</span><div><p class="eyebrow">Цифровая подпись</p><h2 id="signatureHeading">Сравните три проверки</h2></div></div>
+        <p class="section-intro">Сервер выдаёт один текст на пять минут. Подпишите его личным ключом, затем временным ключом и, наконец, проверьте личную подпись после изменения одного символа. Временный закрытый ключ не сохраняется.</p>
+        <div class="button-row"><button type="button" class="button primary" id="issueSignatureChallenge" disabled>Получить текст для подписи</button><span class="expiry" id="signatureExpiry"></span></div>
+        <div class="field-block"><label for="signatureChallengeText">Исходный одноразовый текст</label><textarea id="signatureChallengeText" readonly spellcheck="false" placeholder="Сервер выдаст текст после подтверждения сертификатов"></textarea></div>
+        <p class="hint" id="signatureCertificateSerial"></p>
+
+        <div class="signature-experiment">
+          <h3>1. Личный ключ</h3>
+          <p>Подпись должна пройти проверку открытым ключом из вашего сертификата подписи.</p>
+          <div class="button-row"><button type="button" class="button subtle" id="signPersonalChallenge" disabled>Подписать своим ключом</button></div>
+          <div class="field-block"><label for="ownExerciseSignature">Подпись личным ключом · base64url</label><textarea id="ownExerciseSignature" readonly spellcheck="false"></textarea></div>
+          <div class="result" id="ownSignatureResult" role="status" aria-live="polite">Ожидается исходный текст.</div>
+        </div>
+
+        <div class="signature-experiment">
+          <h3>2. Другой ключ</h3>
+          <p>Временная подпись верна для временного открытого ключа, но не для ключа в вашем сертификате.</p>
+          <div class="button-row"><button type="button" class="button subtle" id="signTemporaryChallenge" disabled>Создать временный ключ и подписать</button></div>
+          <div class="columns key-fields">
+            <div class="field-block"><label for="temporaryExerciseSpki">Временный открытый ключ · SPKI / base64url</label><textarea id="temporaryExerciseSpki" readonly spellcheck="false"></textarea></div>
+            <div class="field-block"><label for="temporaryExerciseSignature">Временная подпись · base64url</label><textarea id="temporaryExerciseSignature" readonly spellcheck="false"></textarea></div>
+          </div>
+          <div class="result" id="temporarySignatureResult" role="status" aria-live="polite">Ожидается временный ключ.</div>
+        </div>
+
+        <div class="signature-experiment">
+          <h3>3. Изменённый текст</h3>
+          <p>Проверьте прежнюю личную подпись для текста, в котором изменён ровно один символ.</p>
+          <div class="button-row"><button type="button" class="button subtle" id="suggestChangedText" disabled>Изменить один символ</button></div>
+          <div class="field-block"><label for="alteredExerciseText">Изменённый текст</label><textarea id="alteredExerciseText" spellcheck="false"></textarea></div>
+          <div class="button-row"><button type="button" class="button subtle" id="checkChangedText" disabled>Проверить прежнюю подпись</button></div>
+          <div class="result" id="changedSignatureResult" role="status" aria-live="polite">Ожидается личная подпись.</div>
+        </div>
+
+        <div class="button-row"><button type="button" class="button primary" id="verifySignatureExercise" disabled>Отправить три результата на сервер</button></div>
+        <div class="result" id="signatureResult" role="status" aria-live="polite">Сначала подтвердите сертификаты.</div>
+        <p class="hint">Сервер самостоятельно повторяет все проверки и засчитывает шаг только при трёх корректных опытах.</p>
+      </section>
+      <section class="card locked" id="outboundSection" aria-labelledby="outboundHeading">
+        <div class="section-heading"><span class="step-number">06</span><div><p class="eyebrow">Пакет серверу</p><h2 id="outboundHeading">Зашифруйте своё сообщение</h2></div></div>
+        <p class="section-intro">Получите сертификат серверного участника, изучите его и введите короткий учебный текст. Браузер создаст отдельный ключ AES и пакет JSON. Сервер расшифрует пакет как адресат и сохранит только его хеш.</p>
+        <div class="button-row"><button type="button" class="button primary" id="prepareOutbound" disabled>Получить сертификат и ID пакета</button></div>
+        <p class="hint fingerprints" id="serviceCertificateMeta"></p>
+        <div class="field-block"><label for="serviceCertificate">Сертификат серверного участника · PEM</label><textarea id="serviceCertificate" readonly spellcheck="false"></textarea></div>
+        <div class="field-block answer-field"><label for="outboundText">Короткий учебный текст · без настоящих секретов</label><textarea id="outboundText" maxlength="500" placeholder="Например: проверяю гибридное шифрование"></textarea></div>
+        <div class="button-row"><button type="button" class="button subtle" id="encryptOutbound" disabled>Зашифровать в браузере</button><button type="button" class="button primary" id="sendOutbound" disabled>Отправить пакет серверу</button></div>
+        <div class="field-block"><label for="outboundJson">Пакет JSON · можно изучить открытые поля и шифротекст</label><textarea id="outboundJson" readonly spellcheck="false"></textarea></div>
+        <div class="result" id="outboundResult" role="status" aria-live="polite">Сначала завершите упражнение с подписью.</div>
+      </section>
+
+      <section class="card locked" id="inboundSection" aria-labelledby="inboundHeading">
+        <div class="section-heading"><span class="step-number">07</span><div><p class="eyebrow">Пакет от сервера</p><h2 id="inboundHeading">Расшифруйте ответ</h2></div></div>
+        <p class="section-intro">Сервер зашифрует одноразовый секрет для открытого ключа из вашего сертификата. Расшифрование выполняется только в браузере личным закрытым ключом.</p>
+        <div class="button-row"><button type="button" class="button primary" id="requestInbound" disabled>Получить пакет</button><span class="expiry" id="inboundExpiry"></span></div>
+        <div class="field-block"><label for="inboundJson">Пакет JSON от сервера</label><textarea id="inboundJson" readonly spellcheck="false"></textarea></div>
+        <div class="button-row"><button type="button" class="button subtle" id="decryptInbound" disabled>Расшифровать своим ключом</button></div>
+        <div class="field-block"><label for="inboundAnswer">Полученный одноразовый секрет</label><input id="inboundAnswer" type="text" autocomplete="off" readonly></div>
+        <div class="button-row"><button type="button" class="button primary" id="verifyInbound" disabled>Отправить ответ на проверку</button></div>
+        <div class="result" id="inboundResult" role="status" aria-live="polite">Сначала отправьте пакет серверу.</div>
+      </section>
+
+      <section class="card locked" id="submissionSection" aria-labelledby="submissionHeading">
+        <div class="section-heading"><span class="step-number">✓</span><div><p class="eyebrow">Завершение</p><h2 id="submissionHeading">Отправка на проверку</h2></div></div>
+        <p class="section-intro">Зелёная полоса означает, что техническая часть выполнена. Преподаватель проверит работу отдельно.</p>
+        <div class="button-row"><button type="button" class="button primary" id="submitLab" disabled>Отправить на проверку</button></div>
+        <div class="result" id="submissionResult" role="status" aria-live="polite">Сначала завершите шесть технических шагов.</div>
+      </section>
+    </main>
+    <footer>CryptoLab · локальная учебная лабораторная · не вводите реальные секреты</footer>
+  </div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

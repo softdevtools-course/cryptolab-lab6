@@ -1,0 +1,1 @@
+"""CryptoLab local prototype application."""
