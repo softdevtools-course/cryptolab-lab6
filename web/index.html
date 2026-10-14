@@ -10,7 +10,6 @@
   <div class="shell">
     <header class="topbar">
       <div class="brand"><span class="brand-mark" aria-hidden="true">◇</span><span>CryptoLab <small>ЛР №6</small></span></div>
-      <span class="local-badge">Локальный стенд</span>
     </header>
 
     <main>
@@ -48,7 +47,7 @@
 
       <section class="card locked" id="challengeSection" aria-labelledby="challengeHeading">
         <div class="section-heading"><span class="step-number">02</span><div><p class="eyebrow">Одноразовое задание</p><h2 id="challengeHeading">Подтвердите результат</h2></div></div>
-        <p class="section-intro">Сервер создаст новый шифротекст для вашего локального сеанса. Расшифруйте его тем же учебным ключом и отправьте полученный ответ на проверку.</p>
+        <p class="section-intro">Сервер создаст новый шифротекст для вашего сеанса. Расшифруйте его тем же учебным ключом и отправьте полученный ответ на проверку.</p>
         <div class="button-row"><button type="button" class="button subtle" id="issueChallenge" disabled>Получить задание</button><span class="expiry" id="expiry"></span></div>
         <div class="field-block"><label for="challengeCipher">Шифротекст задания</label><textarea id="challengeCipher" readonly spellcheck="false" placeholder="Сервер выдаст его после первого опыта"></textarea></div>
         <div class="button-row"><button type="button" class="button subtle" id="decryptChallenge" disabled>Расшифровать задание</button></div>
@@ -60,7 +59,7 @@
       <section class="card locked" id="keysSection" aria-labelledby="keysHeading">
         <div class="section-heading"><span class="step-number">03</span><div><p class="eyebrow">Личные ключи</p><h2 id="keysHeading">Создайте две пары ключей</h2></div></div>
         <p class="section-intro">Одна пара нужна для шифрования, другая — для подписи. Закрытые ключи сохраняются только в этом браузерном профиле. Сервер получает открытые ключи и проверяет два действия с одноразовыми заданиями.</p>
-        <p class="hint">Учебная запись этого локального сеанса: <code id="actorId">загрузка…</code></p>
+        <p class="hint">Учебная запись этого сеанса: <code id="actorId">загрузка…</code></p>
         <div class="button-row"><button type="button" class="button primary" id="generateKeys" disabled>Создать личные ключи</button><button type="button" class="button subtle" id="requestKeyProof" disabled>Получить задания для проверки</button></div>
         <div class="result" id="keysResult" role="status" aria-live="polite">Сначала подтвердите подготовительный шаг.</div>
         <p class="hint fingerprints" id="keyFingerprints"></p>
@@ -162,7 +161,7 @@
         <div class="result" id="submissionResult" role="status" aria-live="polite">Сначала завершите шесть технических шагов.</div>
       </section>
     </main>
-    <footer>CryptoLab · локальная учебная лабораторная · не вводите реальные секреты</footer>
+    <footer>CryptoLab · учебная лабораторная · не вводите реальные секреты</footer>
   </div>
   <script type="module" src="/app.js"></script>
 </body>
