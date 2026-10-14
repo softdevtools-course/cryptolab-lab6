@@ -84,17 +84,21 @@ async function refreshState() {
   updateProgress(state);
   if (!studentDirty) {
     field('studentSurname').value = state.student?.surname || '';
+    field('studentGivenName').value = state.student?.given_name || '';
     field('studentGroup').value = state.student?.group || '';
   }
-  const studentLocked = !!state.submitted_at && !!state.student;
-  field('studentSurname').disabled = studentLocked;
-  field('studentGroup').disabled = studentLocked;
+  const studentLocked = !!state.submitted_at && !!state.student?.given_name;
+  const existingDetailsLocked = !!state.submitted_at && !!state.student;
+  field('studentSurname').disabled = existingDetailsLocked;
+  field('studentGivenName').disabled = studentLocked;
+  field('studentGroup').disabled = existingDetailsLocked;
   field('saveStudent').disabled = studentLocked;
   result('studentResult', studentLocked
-    ? `Данные закреплены за сданной работой: ${state.student.surname}, ${state.student.group}.`
+    ? `Данные закреплены за сданной работой: ${state.student.surname} ${state.student.given_name}, ${state.student.group}.`
     : studentDirty ? 'Изменения ещё не сохранены.'
-    : state.student ? `Сохранено: ${state.student.surname}, ${state.student.group}.`
-    : 'Укажите фамилию и группу, затем сохраните их.', studentLocked || (!studentDirty && state.student) ? 'success' : '');
+    : state.submitted_at && state.student ? 'Для уже отправленной работы добавьте имя и сохраните данные.'
+    : state.student ? `Сохранено: ${state.student.surname} ${state.student.given_name}, ${state.student.group}.`
+    : 'Укажите фамилию, имя и группу, затем сохраните их.', studentLocked || (!studentDirty && state.student && !state.submitted_at) ? 'success' : '');
   if (state.completed) {
     unlockChallenge();
     field('keysSection').classList.remove('locked');
@@ -170,10 +174,10 @@ async function refreshState() {
   }
   if (state.steps_done === 6) {
     field('submissionSection').classList.remove('locked');
-    field('submitLab').disabled = !!state.submitted_at || !state.student || studentDirty;
+    field('submitLab').disabled = !!state.submitted_at || !state.student?.given_name || studentDirty;
     result('submissionResult', state.submitted_at
-      ? `Ожидает проверки · отправлено ${new Date(state.submitted_at).toLocaleString('ru-RU')}${state.student ? '' : ' · укажите фамилию и группу для ведомости'}`
-      : !state.student || studentDirty ? 'Техническая часть выполнена. Сохраните фамилию и группу перед отправкой.'
+      ? `Ожидает проверки · отправлено ${new Date(state.submitted_at).toLocaleString('ru-RU')}${state.student?.given_name ? '' : ' · укажите фамилию, имя и группу для ведомости'}`
+      : !state.student?.given_name || studentDirty ? 'Техническая часть выполнена. Сохраните фамилию, имя и группу перед отправкой.'
       : 'Техническая часть выполнена. Отправьте работу на проверку.', state.submitted_at ? 'success' : '');
   }
   return state;
@@ -649,7 +653,7 @@ field('submitLab').addEventListener('click', async () => {
   } catch (error) { result('submissionResult', error.message, 'error'); }
 });
 
-for (const id of ['studentSurname', 'studentGroup']) {
+for (const id of ['studentSurname', 'studentGivenName', 'studentGroup']) {
   field(id).addEventListener('input', () => {
     studentDirty = true;
     result('studentResult', 'Изменения ещё не сохранены.');
@@ -661,7 +665,7 @@ field('saveStudent').addEventListener('click', async () => {
   try {
     await api('/api/student', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ surname: field('studentSurname').value, group: field('studentGroup').value }),
+      body: JSON.stringify({ surname: field('studentSurname').value, given_name: field('studentGivenName').value, group: field('studentGroup').value }),
     });
     studentDirty = false;
     await refreshState();

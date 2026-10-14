@@ -23,6 +23,7 @@ h2 { font-size:25px; letter-spacing:-.035em; line-height:1.15; margin:0; }
 .section-intro { color:var(--muted); margin:18px 0 26px; max-width:780px; }
 .columns { display:grid; grid-template-columns:1fr 1fr; gap:22px; }
 .student-card { max-width:790px; }
+.student-fields { grid-template-columns:repeat(3,minmax(0,1fr)); }
 .student-fields input { font-family:inherit; font-size:15px; }
 .field-block { min-width:0; }
 label { display:block; font-weight:700; font-size:13px; margin-bottom:9px; }

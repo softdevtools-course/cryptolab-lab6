@@ -18,10 +18,10 @@ def export(db_path: Path, output_dir: Path) -> None:
     sessions_by_id = dict(sessions)
     with (output_dir / "progress.csv").open("w", encoding="utf-8-sig", newline="") as target:
         writer = csv.writer(target, delimiter=";")
-        writer.writerow(("actor_id", "surname", "group", *STEPS, "steps_done", "submitted_at"))
+        writer.writerow(("actor_id", "surname", "given_name", "group", *STEPS, "steps_done", "submitted_at"))
         for _, value in sessions:
             student = value.get("student") or {}
-            writer.writerow((value["actor_id"], student.get("surname", ""), student.get("group", ""),
+            writer.writerow((value["actor_id"], student.get("surname", ""), student.get("given_name", ""), student.get("group", ""),
                              *(int(bool(value.get(step))) for step in STEPS),
                              sum(bool(value.get(step)) for step in STEPS), value.get("submitted_at") or ""))
     actors = {session_id: value["actor_id"] for session_id, value in sessions}
@@ -34,11 +34,11 @@ def export(db_path: Path, output_dir: Path) -> None:
             writer.writerow((actors[session_id], criterion, verified_at, evidence_id or ""))
     with (output_dir / "submissions.csv").open("w", encoding="utf-8-sig", newline="") as target:
         writer = csv.writer(target, delimiter=";")
-        writer.writerow(("actor_id", "surname", "group", "submitted_at", "status"))
+        writer.writerow(("actor_id", "surname", "given_name", "group", "submitted_at", "status"))
         for session_id, submitted_at in db.execute("SELECT session_id, submitted_at FROM lab_submissions ORDER BY submitted_at"):
             value = sessions_by_id[session_id]
             student = value.get("student") or {}
-            writer.writerow((actors[session_id], student.get("surname", ""), student.get("group", ""),
+            writer.writerow((actors[session_id], student.get("surname", ""), student.get("given_name", ""), student.get("group", ""),
                              submitted_at, "Ожидает проверки"))
     db.close()
 

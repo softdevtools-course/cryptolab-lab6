@@ -65,18 +65,19 @@ class PackageRequest(BaseModel):
 
 class StudentRequest(BaseModel):
     surname: str = Field(min_length=2, max_length=80)
+    given_name: str = Field(min_length=2, max_length=80)
     group: str = Field(min_length=2, max_length=40)
 
-    @field_validator("surname", "group")
+    @field_validator("surname", "given_name", "group")
     @classmethod
     def normalize(cls, value: str, info):
         if any(ord(char) < 32 or ord(char) == 127 for char in value):
             raise ValueError("Уберите переносы строк и управляющие символы")
         value = re.sub(r" +", " ", value.strip())
-        if info.field_name == "surname":
+        if info.field_name in ("surname", "given_name"):
             if not (2 <= len(value) <= 80 and value[0].isalpha()
                     and all(char.isalpha() or char in " -'’" for char in value)):
-                raise ValueError("Укажите фамилию буквами")
+                raise ValueError("Укажите фамилию и имя буквами")
         elif not (2 <= len(value) <= 40 and re.fullmatch(r"\w[\w .()/\-]*", value)):
             raise ValueError("Укажите код группы буквами и цифрами")
         return value
@@ -232,8 +233,12 @@ def create_app(
     @app.post("/api/student")
     def save_student(request: Request, body: StudentRequest):
         session = sessions[request.state.session_id]
-        if session.get("submitted_at") and session.get("student"):
-            raise HTTPException(status_code=409, detail="Работа уже отправлена; данные для сдачи закреплены")
+        existing = session.get("student") or {}
+        if session.get("submitted_at") and existing:
+            if existing.get("given_name") or any(
+                existing.get(name) != getattr(body, name) for name in ("surname", "group")
+            ):
+                raise HTTPException(status_code=409, detail="Работа уже отправлена; данные для сдачи закреплены")
         session["student"] = body.model_dump()
         return session["student"]
 
@@ -465,8 +470,8 @@ def create_app(
         session = sessions[request.state.session_id]
         if not all(session[name] for name in STEPS):
             raise HTTPException(status_code=409, detail="Сначала завершите все шесть технических шагов")
-        if not session.get("student"):
-            raise HTTPException(status_code=409, detail="Укажите и сохраните фамилию и группу")
+        if not session.get("student") or not session["student"].get("given_name"):
+            raise HTTPException(status_code=409, detail="Укажите и сохраните фамилию, имя и группу")
         already = bool(session.get("submitted_at"))
         if not already:
             session["submitted_at"] = datetime.now(timezone.utc).isoformat()

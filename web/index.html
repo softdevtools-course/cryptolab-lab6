@@ -25,14 +25,15 @@
       </section>
 
       <section class="card student-card" aria-labelledby="studentHeading">
-        <div class="section-heading"><div><p class="eyebrow">Участник</p><h2 id="studentHeading">Укажите фамилию и группу</h2></div></div>
+        <div class="section-heading"><div><p class="eyebrow">Участник</p><h2 id="studentHeading">Укажите фамилию, имя и группу</h2></div></div>
         <p class="section-intro">Эти данные попадут в закрытую ведомость преподавателя. Сохраните их до отправки работы; до сдачи опечатку можно исправить.</p>
         <div class="columns student-fields">
           <div class="field-block"><label for="studentSurname">Фамилия</label><input id="studentSurname" type="text" autocomplete="family-name" maxlength="80" placeholder="Например: Иванов"></div>
+          <div class="field-block"><label for="studentGivenName">Имя</label><input id="studentGivenName" type="text" autocomplete="given-name" maxlength="80" placeholder="Например: Иван"></div>
           <div class="field-block"><label for="studentGroup">Группа</label><input id="studentGroup" type="text" autocomplete="off" maxlength="40" placeholder="Например: 23-ИС-12с"></div>
         </div>
         <div class="button-row"><button type="button" class="button primary" id="saveStudent">Сохранить данные</button></div>
-        <div class="result" id="studentResult" role="status" aria-live="polite">Укажите фамилию и группу, затем сохраните их.</div>
+        <div class="result" id="studentResult" role="status" aria-live="polite">Укажите фамилию, имя и группу, затем сохраните их.</div>
         <p class="hint">Указанные данные помогают найти результат в ведомости, но не подтверждают личность без проверки преподавателем.</p>
       </section>
 
