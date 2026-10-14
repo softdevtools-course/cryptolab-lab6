@@ -15,25 +15,31 @@ def export(db_path: Path, output_dir: Path) -> None:
     output_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
     db = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
     sessions = [(session_id, json.loads(raw)) for session_id, raw in db.execute("SELECT session_id, data FROM sessions ORDER BY session_id")]
-    with (output_dir / "progress.csv").open("w", encoding="utf-8", newline="") as target:
-        writer = csv.writer(target)
-        writer.writerow(("actor_id", *STEPS, "steps_done", "submitted_at"))
+    sessions_by_id = dict(sessions)
+    with (output_dir / "progress.csv").open("w", encoding="utf-8-sig", newline="") as target:
+        writer = csv.writer(target, delimiter=";")
+        writer.writerow(("actor_id", "surname", "group", *STEPS, "steps_done", "submitted_at"))
         for _, value in sessions:
-            writer.writerow((value["actor_id"], *(int(bool(value.get(step))) for step in STEPS),
+            student = value.get("student") or {}
+            writer.writerow((value["actor_id"], student.get("surname", ""), student.get("group", ""),
+                             *(int(bool(value.get(step))) for step in STEPS),
                              sum(bool(value.get(step)) for step in STEPS), value.get("submitted_at") or ""))
     actors = {session_id: value["actor_id"] for session_id, value in sessions}
-    with (output_dir / "events.csv").open("w", encoding="utf-8", newline="") as target:
-        writer = csv.writer(target)
+    with (output_dir / "events.csv").open("w", encoding="utf-8-sig", newline="") as target:
+        writer = csv.writer(target, delimiter=";")
         writer.writerow(("actor_id", "criterion", "verified_at", "evidence_id"))
         for session_id, criterion, verified_at, evidence_id in db.execute(
             "SELECT session_id, criterion, verified_at, evidence_id FROM lab_events ORDER BY verified_at, session_id, criterion"
         ):
             writer.writerow((actors[session_id], criterion, verified_at, evidence_id or ""))
-    with (output_dir / "submissions.csv").open("w", encoding="utf-8", newline="") as target:
-        writer = csv.writer(target)
-        writer.writerow(("actor_id", "submitted_at", "status"))
+    with (output_dir / "submissions.csv").open("w", encoding="utf-8-sig", newline="") as target:
+        writer = csv.writer(target, delimiter=";")
+        writer.writerow(("actor_id", "surname", "group", "submitted_at", "status"))
         for session_id, submitted_at in db.execute("SELECT session_id, submitted_at FROM lab_submissions ORDER BY submitted_at"):
-            writer.writerow((actors[session_id], submitted_at, "Ожидает проверки"))
+            value = sessions_by_id[session_id]
+            student = value.get("student") or {}
+            writer.writerow((actors[session_id], student.get("surname", ""), student.get("group", ""),
+                             submitted_at, "Ожидает проверки"))
     db.close()
 
 

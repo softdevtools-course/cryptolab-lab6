@@ -22,6 +22,8 @@ h1 { font-size:clamp(34px,5vw,54px); line-height:1.08; letter-spacing:-.055em; m
 h2 { font-size:25px; letter-spacing:-.035em; line-height:1.15; margin:0; }
 .section-intro { color:var(--muted); margin:18px 0 26px; max-width:780px; }
 .columns { display:grid; grid-template-columns:1fr 1fr; gap:22px; }
+.student-card { max-width:790px; }
+.student-fields input { font-family:inherit; font-size:15px; }
 .field-block { min-width:0; }
 label { display:block; font-weight:700; font-size:13px; margin-bottom:9px; }
 textarea,input { width:100%; color:var(--ink); background:#f9fbfd; border:1px solid #cad5e2; border-radius:10px; padding:13px 14px; font:13px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace; outline:none; }

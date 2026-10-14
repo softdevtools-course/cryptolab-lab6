@@ -20,7 +20,7 @@ from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.ca import DEFAULT_CA_DIR, KEY_VERSION, issue_student_certificate, load_ca, verify_student_certificate
 from app.packages import encrypt as encrypt_package, decrypt as decrypt_package, packet_hash
@@ -63,6 +63,25 @@ class PackageRequest(BaseModel):
     package: dict = Field(default_factory=dict)
 
 
+class StudentRequest(BaseModel):
+    surname: str = Field(min_length=2, max_length=80)
+    group: str = Field(min_length=2, max_length=40)
+
+    @field_validator("surname", "group")
+    @classmethod
+    def normalize(cls, value: str, info):
+        if any(ord(char) < 32 or ord(char) == 127 for char in value):
+            raise ValueError("Уберите переносы строк и управляющие символы")
+        value = re.sub(r" +", " ", value.strip())
+        if info.field_name == "surname":
+            if not (2 <= len(value) <= 80 and value[0].isalpha()
+                    and all(char.isalpha() or char in " -'’" for char in value)):
+                raise ValueError("Укажите фамилию буквами")
+        elif not (2 <= len(value) <= 40 and re.fullmatch(r"\w[\w .()/\-]*", value)):
+            raise ValueError("Укажите код группы буквами и цифрами")
+        return value
+
+
 def decode_base64url(value: str) -> bytes:
     if not re.fullmatch(r"[A-Za-z0-9_-]+", value):
         raise HTTPException(status_code=422, detail="Ожидался base64url")
@@ -96,7 +115,7 @@ def create_app(
     service_dir: Path = DEFAULT_SERVICE_DIR, db_path: Path | None = None,
     certificate_clock: Callable[[], datetime] = lambda: datetime.now(timezone.utc),
 ) -> FastAPI:
-    app = FastAPI(title="CryptoLab — локальный подготовительный этап")
+    app = FastAPI(title="CryptoLab — учебная лабораторная №6")
     training_key = serialization.load_pem_private_key(
         (EXAMPLES / "training-key.pem").read_bytes(), password=None
     )
@@ -116,6 +135,7 @@ def create_app(
             session_id = secrets.token_urlsafe(32)
             sessions[session_id] = {
                 "actor_id": f"student:{secrets.token_urlsafe(12)}",
+                "student": None,
                 "completed": False,
                 "keys_verified": False,
                 "public_keys": None,
@@ -194,6 +214,7 @@ def create_app(
         )
         return {
             "actor_id": session["actor_id"],
+            "student": session.get("student"),
             "completed": session["completed"],
             "keys_verified": session["keys_verified"],
             "certificates_issued": session["certificates"] is not None,
@@ -207,6 +228,14 @@ def create_app(
             "steps_done": sum(int(session[name]) for name in STEPS),
             "steps_total": 6,
         }
+
+    @app.post("/api/student")
+    def save_student(request: Request, body: StudentRequest):
+        session = sessions[request.state.session_id]
+        if session.get("submitted_at") and session.get("student"):
+            raise HTTPException(status_code=409, detail="Работа уже отправлена; данные для сдачи закреплены")
+        session["student"] = body.model_dump()
+        return session["student"]
 
     def teaching_ca():
         try:
@@ -436,6 +465,8 @@ def create_app(
         session = sessions[request.state.session_id]
         if not all(session[name] for name in STEPS):
             raise HTTPException(status_code=409, detail="Сначала завершите все шесть технических шагов")
+        if not session.get("student"):
+            raise HTTPException(status_code=409, detail="Укажите и сохраните фамилию и группу")
         already = bool(session.get("submitted_at"))
         if not already:
             session["submitted_at"] = datetime.now(timezone.utc).isoformat()

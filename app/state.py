@@ -43,6 +43,7 @@ class StateStore:
             value["active_signature_challenge"] = None
             for name in FLAGS:
                 value.setdefault(name, False)
+            value.setdefault("student", None)
             result[session_id] = value
         return result
 

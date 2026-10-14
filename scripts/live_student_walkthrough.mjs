@@ -116,6 +116,8 @@ assert.equal((await post(inboundUrl, { answer: 'wrong' })).verified, false);
 assert.equal((await post(inboundUrl, { answer: inboundAnswer })).verified, true);
 await progress(6, 'ответный пакет, расшифрование личным ключом');
 
+assert.deepEqual(await post('/api/student', { surname: 'Тестовый', group: 'DEMO' }),
+  { surname: 'Тестовый', group: 'DEMO' });
 const firstSubmission = await post('/api/submissions');
 const secondSubmission = await post('/api/submissions');
 assert.equal(firstSubmission.status, 'Ожидает проверки');

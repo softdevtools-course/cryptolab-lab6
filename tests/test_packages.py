@@ -134,8 +134,11 @@ def test_full_exchange_restart_and_submission(tmp_path):
     assert client.post(verify_url, json={"answer": answer}).json()["verified"]
     assert client.post(verify_url, json={"answer": answer}).json()["already_completed"]
     assert client.get("/api/state").json()["steps_done"] == 6
+    assert client.post("/api/submissions").status_code == 409
+    assert client.post("/api/student", json={"surname": "Иванов", "group": "23-ИС-12с"}).status_code == 200
     assert client.post("/api/submissions").json()["already_submitted"] is False
     assert client.post("/api/submissions").json()["already_submitted"] is True
+    assert client.post("/api/student", json={"surname": "Петров", "group": "23-ИС-12с"}).status_code == 409
 
     cookie = client.cookies.get("cryptolab_stage1")
     restarted = TestClient(create_app(ca_dir=ca_dir, service_dir=service_dir, db_path=db_path))
@@ -144,10 +147,12 @@ def test_full_exchange_restart_and_submission(tmp_path):
     assert state["actor_id"] == challenge["sender_actor_id"]
     assert state["steps_done"] == 6
     assert state["submitted_at"]
+    assert state["student"] == {"surname": "Иванов", "group": "23-ИС-12с"}
     assert restarted.post("/api/submissions").json()["already_submitted"] is True
     assert Path(db_path).exists()
     output_dir = tmp_path / "export"
     export(db_path, output_dir)
     assert "6" in (output_dir / "progress.csv").read_text()
     assert "Ожидает проверки" in (output_dir / "submissions.csv").read_text()
+    assert "Иванов;23-ИС-12с" in (output_dir / "submissions.csv").read_text()
     assert "outbound_verified" in (output_dir / "events.csv").read_text()
