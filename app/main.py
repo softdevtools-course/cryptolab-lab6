@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+from collections import defaultdict, deque
 import hashlib
 import hmac
 import os
@@ -19,7 +20,7 @@ from cryptography import x509
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric import padding, rsa
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel, Field, field_validator
 
 from app.ca import DEFAULT_CA_DIR, KEY_VERSION, issue_student_certificate, load_ca, verify_student_certificate
@@ -127,12 +128,47 @@ def create_app(
     signature_challenges: dict[str, dict] = {}
     outbound_challenges: dict[str, dict] = {}
     inbound_challenges: dict[str, dict] = {}
+    public_origin = os.environ.get("CRYPTOLAB_PUBLIC_ORIGIN", "").rstrip("/")
+    new_session_limit = int(os.environ.get("CRYPTOLAB_NEW_SESSIONS_PER_MIN", "120"))
+    request_limit = int(os.environ.get("CRYPTOLAB_REQUESTS_PER_MIN", "1200"))
+    recent_requests: dict[tuple[str, str], deque[float]] = defaultdict(deque)
+
+    def within_limit(kind: str, address: str, limit: int) -> bool:
+        now = time.monotonic()
+        entries = recent_requests[(kind, address)]
+        while entries and entries[0] <= now - 60:
+            entries.popleft()
+        if len(entries) >= limit:
+            return False
+        entries.append(now)
+        return True
 
     @app.middleware("http")
     async def local_session(request: Request, call_next):
+        if not request.url.path.startswith("/api/"):
+            return await call_next(request)
+        if public_origin:
+            # exe.dev appends the connecting address to X-Forwarded-For.
+            address = request.headers.get("x-forwarded-for", "").split(",")[-1].strip()
+            address = address or (request.client.host if request.client else "unknown")
+            if not within_limit("request", address, request_limit):
+                return JSONResponse({"detail": "Слишком много запросов"}, status_code=429)
+            if request.method == "POST":
+                if request.headers.get("origin") != public_origin:
+                    return JSONResponse({"detail": "Недопустимый источник запроса"}, status_code=403)
+                if request.headers.get("content-length", "0").isdigit() and int(request.headers.get("content-length", "0")) > 65536:
+                    return JSONResponse({"detail": "Запрос слишком большой"}, status_code=413)
+                body = bytearray()
+                async for chunk in request.stream():
+                    body.extend(chunk)
+                    if len(body) > 65536:
+                        return JSONResponse({"detail": "Запрос слишком большой"}, status_code=413)
+                request._body = bytes(body)
         session_id = request.cookies.get(COOKIE_NAME)
         new_session = not session_id or session_id not in sessions
         if new_session:
+            if public_origin and not within_limit("session", address, new_session_limit):
+                return JSONResponse({"detail": "Слишком много новых сеансов"}, status_code=429)
             session_id = secrets.token_urlsafe(32)
             sessions[session_id] = {
                 "actor_id": f"student:{secrets.token_urlsafe(12)}",

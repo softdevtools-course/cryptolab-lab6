@@ -15,7 +15,8 @@ let cookie = '';
 
 async function request(path, options = {}) {
   const headers = { ...(options.headers || {}), ...(cookie ? { Cookie: cookie } : {}),
-    ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}) };
+    ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+    ...(options.method === 'POST' ? { Origin: new URL(base).origin } : {}) };
   const response = await fetch(base + path, { ...options, headers });
   if (!cookie && response.headers.get('set-cookie')) cookie = response.headers.get('set-cookie').split(';')[0];
   const body = await response.json();
