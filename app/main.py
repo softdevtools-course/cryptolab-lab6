@@ -27,6 +27,7 @@ from app.ca import DEFAULT_CA_DIR, KEY_VERSION, issue_student_certificate, load_
 from app.packages import encrypt as encrypt_package, decrypt as decrypt_package, packet_hash
 from app.service import ACTOR_ID as SERVICE_ACTOR, DEFAULT_SERVICE_DIR, load_service
 from app.state import DEFAULT_DB_PATH, StateStore, STEPS
+from app.telegram import notify_submission
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -511,6 +512,10 @@ def create_app(
         already = bool(session.get("submitted_at"))
         if not already:
             session["submitted_at"] = datetime.now(timezone.utc).isoformat()
+        if not session.get("telegram_notified"):
+            session["telegram_notified"] = notify_submission(
+                session["student"], session["submitted_at"]
+            )
         return {"status": "Ожидает проверки", "submitted_at": session["submitted_at"], "already_submitted": already}
 
     @app.post("/api/signature-challenges")

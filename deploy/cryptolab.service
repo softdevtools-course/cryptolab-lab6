@@ -11,6 +11,7 @@ WorkingDirectory=/opt/cryptolab/current
 Environment=CRYPTOLAB_DATA_DIR=/var/lib/cryptolab
 Environment=CRYPTOLAB_COOKIE_SECURE=1
 Environment=PYTHONDONTWRITEBYTECODE=1
+EnvironmentFile=-/etc/cryptolab/telegram.env
 ExecStart=/opt/cryptolab/current/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
 Restart=on-failure
 RestartSec=3
