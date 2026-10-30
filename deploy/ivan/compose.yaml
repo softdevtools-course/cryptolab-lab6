@@ -1,0 +1,41 @@
+name: course-lab06
+services:
+  lab06:
+    image: ${CRYPTOLAB_IMAGE:-course/cryptolab:production-20261031}
+    build: ./source
+    restart: unless-stopped
+    user: "10001:10001"
+    init: true
+    env_file: ./runtime.env
+    environment:
+      CRYPTOLAB_DATA_DIR: /var/lib/cryptolab
+      CRYPTOLAB_COOKIE_SECURE: "1"
+      CRYPTOLAB_PUBLIC_ORIGIN: https://lab-06.course.denrad.dev
+    volumes:
+      - ./data:/var/lib/cryptolab
+    ports:
+      - "127.0.0.1:18066:8000"
+    networks:
+      lab06_edge:
+        aliases:
+          - lab06
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 1g
+    cpus: 2.0
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+networks:
+  lab06_edge:
+    external: true

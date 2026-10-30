@@ -39,7 +39,7 @@ def export(db_path: Path, output_dir: Path) -> None:
             value = sessions_by_id[session_id]
             student = value.get("student") or {}
             writer.writerow((actors[session_id], student.get("surname", ""), student.get("given_name", ""), student.get("group", ""),
-                             submitted_at, "Ожидает проверки"))
+                             submitted_at, "Работа сдана"))
     db.close()
 
 

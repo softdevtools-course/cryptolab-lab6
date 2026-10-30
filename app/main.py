@@ -516,7 +516,7 @@ def create_app(
             session["telegram_notified"] = notify_submission(
                 session["student"], session["submitted_at"]
             )
-        return {"status": "Ожидает проверки", "submitted_at": session["submitted_at"], "already_submitted": already}
+        return {"status": "Работа сдана", "submitted_at": session["submitted_at"], "already_submitted": already}
 
     @app.post("/api/signature-challenges")
     def create_signature_challenge(request: Request):

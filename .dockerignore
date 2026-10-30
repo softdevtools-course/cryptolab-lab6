@@ -1,0 +1,15 @@
+# Only application sources and public teaching fixtures enter the build context.
+**
+!Dockerfile
+!pyproject.toml
+!requirements-runtime.lock
+!app/
+!app/**
+!web/
+!web/**
+!examples/
+!examples/**
+**/__pycache__/**
+**/*.pyc
+**/.DS_Store
+**/._*
