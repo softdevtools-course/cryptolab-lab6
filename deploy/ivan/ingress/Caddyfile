@@ -1,0 +1,8 @@
+lab-06.course.denrad.dev {
+	log
+	reverse_proxy lab06:8000
+}
+
+ivan.denrad.dev {
+	redir https://lab-06.course.denrad.dev{uri} permanent
+}

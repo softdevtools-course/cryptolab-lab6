@@ -1,0 +1,14 @@
+[Unit]
+Description=Restricted Telegram proxy tunnel to ivan
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=0
+[Service]
+User=exedev
+ExecStart=/usr/bin/ssh -N -T -i /etc/cryptolab-tunnel/id_ed25519 -o BatchMode=yes -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=/etc/cryptolab-tunnel/known_hosts -o ExitOnForwardFailure=yes -o ServerAliveInterval=30 -o ServerAliveCountMax=3 -R 172.18.0.1:18080:127.0.0.1:8000 tg-tunnel@89.208.69.52
+Restart=always
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+[Install]
+WantedBy=multi-user.target

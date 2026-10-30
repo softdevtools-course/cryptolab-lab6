@@ -176,9 +176,9 @@ async function refreshState() {
     field('submissionSection').classList.remove('locked');
     field('submitLab').disabled = !!state.submitted_at || !state.student?.given_name || studentDirty;
     result('submissionResult', state.submitted_at
-      ? `Ожидает проверки · отправлено ${new Date(state.submitted_at).toLocaleString('ru-RU')}${state.student?.given_name ? '' : ' · укажите фамилию, имя и группу для ведомости'}`
+      ? `Работа сдана · отправлено ${new Date(state.submitted_at).toLocaleString('ru-RU')}${state.student?.given_name ? '' : ' · укажите фамилию, имя и группу для ведомости'}`
       : !state.student?.given_name || studentDirty ? 'Техническая часть выполнена. Сохраните фамилию, имя и группу перед отправкой.'
-      : 'Техническая часть выполнена. Отправьте работу на проверку.', state.submitted_at ? 'success' : '');
+      : 'Техническая часть выполнена. Отправьте работу.', state.submitted_at ? 'success' : '');
   }
   return state;
 }

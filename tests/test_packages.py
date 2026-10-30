@@ -136,8 +136,12 @@ def test_full_exchange_restart_and_submission(tmp_path):
     assert client.get("/api/state").json()["steps_done"] == 6
     assert client.post("/api/submissions").status_code == 409
     assert client.post("/api/student", json={"surname": "Иванов", "given_name": "Иван", "group": "23-ИС-12с"}).status_code == 200
-    assert client.post("/api/submissions").json()["already_submitted"] is False
-    assert client.post("/api/submissions").json()["already_submitted"] is True
+    first = client.post("/api/submissions").json()
+    repeated = client.post("/api/submissions").json()
+    assert first["status"] == repeated["status"] == "Работа сдана"
+    assert first["already_submitted"] is False
+    assert repeated["already_submitted"] is True
+    assert first["submitted_at"] == repeated["submitted_at"]
     assert client.post("/api/student", json={"surname": "Петров", "given_name": "Иван", "group": "23-ИС-12с"}).status_code == 409
 
     cookie = client.cookies.get("cryptolab_stage1")
@@ -153,6 +157,6 @@ def test_full_exchange_restart_and_submission(tmp_path):
     output_dir = tmp_path / "export"
     export(db_path, output_dir)
     assert "6" in (output_dir / "progress.csv").read_text()
-    assert "Ожидает проверки" in (output_dir / "submissions.csv").read_text()
+    assert "Работа сдана" in (output_dir / "submissions.csv").read_text()
     assert "Иванов;Иван;23-ИС-12с" in (output_dir / "submissions.csv").read_text()
     assert "outbound_verified" in (output_dir / "events.csv").read_text()

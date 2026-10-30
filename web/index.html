@@ -20,7 +20,7 @@
         <div class="progress-card" aria-label="Прогресс технических шагов">
           <div class="progress-head"><strong>Моя работа</strong><span id="progressText">Ожидается подготовительный шаг</span></div>
           <div class="progress-track" role="progressbar" aria-label="Технические шаги лабораторной" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0" id="progressBar"><span id="progressFill"></span></div>
-          <p>Полоса отражает только подтверждённые технические шаги. После заполнения отправьте работу на проверку.</p>
+          <p>Полоса отражает только подтверждённые технические шаги. После заполнения отправьте работу.</p>
         </div>
       </section>
 
@@ -168,14 +168,14 @@
       </section>
 
       <section class="card locked" id="submissionSection" aria-labelledby="submissionHeading">
-        <div class="section-heading"><span class="step-number">✓</span><div><p class="eyebrow">Завершение</p><h2 id="submissionHeading">Отправка на проверку</h2></div></div>
-        <p class="section-intro">Зелёная полоса означает, что техническая часть выполнена. Преподаватель проверит работу отдельно.</p>
-        <div class="button-row"><button type="button" class="button primary" id="submitLab" disabled>Отправить на проверку</button></div>
+        <div class="section-heading"><span class="step-number">✓</span><div><p class="eyebrow">Завершение</p><h2 id="submissionHeading">Сдача работы</h2></div></div>
+        <p class="section-intro">Когда все шесть результатов подтверждены, сохраните фамилию, имя и группу и отправьте работу. Стенд запишет сдачу; дополнительных действий не требуется.</p>
+        <div class="button-row"><button type="button" class="button primary" id="submitLab" disabled>Отправить работу</button></div>
         <div class="result" id="submissionResult" role="status" aria-live="polite">Сначала завершите шесть технических шагов.</div>
       </section>
     </main>
     <footer>CryptoLab · учебная лабораторная · не вводите реальные секреты</footer>
   </div>
-  <script type="module" src="/app.js"></script>
+  <script type="module" src="/app.js?v=20261021-submit"></script>
 </body>
 </html>

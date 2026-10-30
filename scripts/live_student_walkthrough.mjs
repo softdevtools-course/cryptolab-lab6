@@ -121,8 +121,8 @@ assert.deepEqual(await post('/api/student', { surname: 'Тестовый', given
   { surname: 'Тестовый', given_name: 'Студент', group: 'DEMO' });
 const firstSubmission = await post('/api/submissions');
 const secondSubmission = await post('/api/submissions');
-assert.equal(firstSubmission.status, 'Ожидает проверки');
+assert.equal(firstSubmission.status, 'Работа сдана');
 assert.equal(firstSubmission.already_submitted, false);
 assert.equal(secondSubmission.already_submitted, true);
 assert.equal(firstSubmission.submitted_at, secondSubmission.submitted_at);
-console.log('Сдача · Ожидает проверки; повторная отправка не создала новую запись');
+console.log('Сдача · Работа сдана; повторная отправка не создала новую запись');
